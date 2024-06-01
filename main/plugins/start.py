@@ -16,6 +16,7 @@ from yt_dlp import YoutubeDL
 from telethon.sync import TelegramClient
 from .. import Bot as app
 
+words_to_replace_in_caption = {}
 @luminant.on(events.NewMessage(pattern=f"^/start"))
 async def start(event):
     """
@@ -64,6 +65,29 @@ async def remove_thumbnail(event):
     except FileNotFoundError:
         await event.respond("No thumbnail found to remove.")
 
+@luminant.on(events.NewMessage(pattern='/replace'))
+def replace_command_handler(event):
+    global words_to_replace_in_caption
+    try:
+        # Extract the replacement pairs from the command
+        replace_data = message.text.split("/replace ")[1]
+        # Split the replacement pairs by comma
+        replace_pairs = replace_data.split(',')
+        replace_dict = {}
+        for pair in replace_pairs:
+            # Split each pair by colon to separate key and value
+            key, value = pair.split(':')
+            # Remove leading/trailing whitespaces
+            key = key.strip()
+            value = value.strip()
+            # Add the pair to the replacement dictionary
+            replace_dict[key] = value
+        # Update the global words_to_replace_in_caption dictionary with the new replacement pairs
+        words_to_replace_in_caption.update(replace_dict)
+        # Inform the user about the successful update
+        await event.respond(message.chat.id, "Replacement dictionary updated successfully.")
+    except:
+        await event.respond(message.chat.id, "Invalid replace command syntax.")
 
 # Function to get video info including duration
 def get_youtube_video_info(url):
